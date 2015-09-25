@@ -2,6 +2,11 @@
 if (!(require(dplyr)))
     stop("Please install dplyr 0.4.3 for progressing with this script!")
 
+# Set the working directory to where this file is. 
+# Note that the UCI HAR Dataset.zip file is assumed to be in this directory.
+this.dir <- dirname(parent.frame(2)$ofile)
+setwd(this.dir)
+
 read_dataset <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train", features) {
     # Reads a dataset within the UCI HAR Dataset.zip file
     #
@@ -148,10 +153,10 @@ read_activities <- function(path = ".", file = "UCI HAR Dataset.zip") {
     activities
 }
 
-read_column_names <- function(path = ".", file = "descriptors.txt") {
-    # A descriptors.txt file has been written which contains descriptive names of the mean and 
+read_column_names <- function(path = ".", file = "run_analysis.codebook") {
+    # A run_analysis.codebook file has been written which contains descriptive names of the mean and 
     # standard deviation measurements for both the time and frequency domain. This file is in the
-    # same directory as this script, and is called descriptors.txt. This file is structured in two
+    # same directory as this script, and is called run_analysis.codebook. This file is structured in two
     # space separated columns. 
     # The first column, Actual, contains the actual measurement name, a subset of the 
     # data in the feature.txt file in the dataset (only those with mean() or std() in their names)
@@ -162,7 +167,7 @@ read_column_names <- function(path = ".", file = "descriptors.txt") {
     #
     # Args:
     #   path: Defaults to the current directory, where the UCI HAR Dataset.zip file is contained
-    #   file: Defaults to descriptors.txt, that has been written to provide descriptive names to measurements
+    #   file: Defaults to run_analysis.codebook, that has been written to provide descriptive names to measurements
     #
     # Returns: 
     # The descriptive column names, a data.frame
@@ -185,11 +190,11 @@ read_column_names <- function(path = ".", file = "descriptors.txt") {
 rename_columns_of_dataset <- function(dataset, col_names, name_as = "Long") {
     # Takes the dataset columns, and renames them from the Actual column name
     # in the features.txt file to the descriptive column names that are in the
-    # descriptors.txt file.
+    # run_analysis.codebook file.
     #
     # Args:
     #   dataset: The dataset whose column names need to be changed to descriptive ones
-    #   col_names: The Actual, Long, and Short form column names read from the descriptors.txt file
+    #   col_names: The Actual, Long, and Short form column names read from the run_analysis.codebook file
     #   name_as: The column name (Long or Short) to rename columns to, which defaults to Long
     #
     # Returns: 
@@ -213,12 +218,12 @@ activities <- read_activities()
 # mean() and standard deviation for each measurement.
 features <- read_features() %>% filter(grepl("mean\\(|std\\(", measurement))
 
-# A file has been written, descriptors.txt, that assigns descriptive names to the mean and standard
+# A file has been written, run_analysis.codebook, that assigns descriptive names to the mean and standard
 # deviation column names. This is as per the requirements in the project specification.
 # For example, instead of "tBodyAcc-mean()-X", the descritors.txt file maps this to
 # "Mean Linear Acceleration on X Axis - Time". In addition, a short abbreviation is also present in the file,
 # for the long description. In the example above, the short description is MLAXAT.
-# In the following function, this descriptors.txt file is read.
+# In the following function, this run_analysis.codebook file is read.
 col_names <- read_column_names()
 
 # Two similar blocks of code below reads the training and test data contained in the compressed dataset.
