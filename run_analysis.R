@@ -4,10 +4,9 @@ if (!(require(dplyr)))
 
 # Set the working directory to where this file is. 
 # Note that the UCI HAR Dataset.zip file is assumed to be in this directory.
-this.dir <- dirname(parent.frame(2)$ofile)
-setwd(this.dir)
+setwd(dirname(parent.frame(2)$ofile))
 
-read_dataset <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train", features) {
+read.dataset <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train", features) {
     # Reads a dataset within the UCI HAR Dataset.zip file
     #
     # Args:
@@ -39,7 +38,7 @@ read_dataset <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "tr
     data
 }
 
-read_labels <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train") {
+read.labels <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train") {
     # Reads the labels within the UCI HAR Dataset.zip file
     #
     # Args:
@@ -69,7 +68,7 @@ read_labels <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "tra
     labels
 }
 
-read_subjects <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train") {
+read.subjects <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "train") {
     # Reads the subjects within the UCI HAR Dataset.zip file
     #
     # Args:
@@ -99,7 +98,7 @@ read_subjects <- function(path = ".", file = "UCI HAR Dataset.zip", dataset = "t
     subjects
 }
 
-read_features <- function(path = ".", file = "UCI HAR Dataset.zip") {
+read.features <- function(path = ".", file = "UCI HAR Dataset.zip") {
     # Reads the feature.txt file within the UCI HAR Dataset.zip
     #
     # Args:
@@ -126,7 +125,7 @@ read_features <- function(path = ".", file = "UCI HAR Dataset.zip") {
     features
 }
 
-read_activities <- function(path = ".", file = "UCI HAR Dataset.zip") {
+read.activities <- function(path = ".", file = "UCI HAR Dataset.zip") {
     # Reads the activity_labels.txt file within the UCI HAR Dataset.zip
     #
     # Args:
@@ -153,18 +152,20 @@ read_activities <- function(path = ".", file = "UCI HAR Dataset.zip") {
     activities
 }
 
-read_column_names <- function(path = ".", file = "CodeBook.md") {
+parse.codebook <- function(path = ".", file = "CodeBook.md") {
     # A CodeBook.md file has been written which contains descriptive names of the mean and 
     # standard deviation measurements for both the time and frequency domain. This file is in the
-    # same directory as this script, and is called CodeBook.md. This file is structured in two
-    # space separated columns. 
+    # same directory as this script. This file is structured in three space separated columns. 
     # The first column, Actual, contains the actual measurement name, a subset of the 
     # data in the feature.txt file in the dataset (only those with mean() or std() in their names)
-    # The second column, Long, contains the descriptive measurement name, that is asked according
+    # The second column, Description, contains the descriptive measurement name, that is asked according
     # to the project specification.
-    # The third column, Short, is just an abbreviation of the Long column. Its not used at the moment.
-    # This file in read by this function.
+    # The third column, Unit, is the unit in which these measurements are taken, g for acceleration and
+    # rad/sec for angular velocity. It is assumed the same for both the frequency and time domain signals.
     #
+    # The use of the code book itself to both explain what the variable are, and also to provide the
+    # descriptive names in the code is inspired by the following post in R bloggers
+    # http://www.r-bloggers.com/reading-codebook-files-in-r/
     # Args:
     #   path: Defaults to the current directory, where the UCI HAR Dataset.zip file is contained
     #   file: Defaults to CodeBook.md, that has been written to provide descriptive names to measurements
@@ -175,11 +176,11 @@ read_column_names <- function(path = ".", file = "CodeBook.md") {
     if (!file.exists(full_path))
         stop("Invalid path to column name file. File does not exist.")
 
-    # This line reads descriptors file
+    # This line reads CodeBook.md file
     col_names <- read.table(full_path, 
                             header = T, stringsAsFactors = F)
 
-    # The row name is assigned as the "Actual" column name in the descriptor file, the same name
+    # The row name is assigned as the "Actual" column name in the code book file, the same name
     # thats contained in the features.txt file in the dataset (only the mean and std dev subset)
     row.names(col_names) <- col_names[["Actual"]]
 
@@ -187,15 +188,15 @@ read_column_names <- function(path = ".", file = "CodeBook.md") {
     col_names
 }
 
-rename_columns_of_dataset <- function(dataset, col_names, name_as = "Long") {
+rename.columns <- function(dataset, col_names, name_as = "Description") {
     # Takes the dataset columns, and renames them from the Actual column name
     # in the features.txt file to the descriptive column names that are in the
     # CodeBook.md file.
     #
     # Args:
     #   dataset: The dataset whose column names need to be changed to descriptive ones
-    #   col_names: The Actual, Long, and Short form column names read from the CodeBook.md file
-    #   name_as: The column name (Long or Short) to rename columns to, which defaults to Long
+    #   col_names: The Actual nae, Description, and Units of the measurements read from the CodeBook.md file
+    #   name_as: The column name to rename columns to, which defaults to Long
     #
     # Returns: 
     # The dataset with the new column names    
@@ -207,7 +208,7 @@ rename_columns_of_dataset <- function(dataset, col_names, name_as = "Long") {
 
 # Read the activity_labels.txt file within the UCI HAR Samsung dataset. 
 # Refer to the function further down this script.
-activities <- read_activities()
+activities <- read.activities()
 
 # Read the features.txt file within the UCI HAR Samsung dataset. 
 # Refer to the function further down in this script.
@@ -216,7 +217,7 @@ activities <- read_activities()
 # After reading this file, only those feature names are extracted, which have mean() or 
 # std() in their name. This is as instructed in the project specification, to only work with the 
 # mean() and standard deviation for each measurement.
-features <- read_features() %>% filter(grepl("mean\\(|std\\(", measurement))
+features <- read.features() %>% filter(grepl("mean\\(|std\\(", measurement))
 
 # A file has been written, CodeBook.md, that assigns descriptive names to the mean and standard
 # deviation column names. This is as per the requirements in the project specification.
@@ -224,19 +225,19 @@ features <- read_features() %>% filter(grepl("mean\\(|std\\(", measurement))
 # "Mean Linear Acceleration on X Axis - Time". In addition, a short abbreviation is also present in the file,
 # for the long description. In the example above, the short description is MLAXAT.
 # In the following function, this CodeBook.md file is read.
-col_names <- read_column_names()
+col_names <- parse.codebook()
 
 # Two similar blocks of code below reads the training and test data contained in the compressed dataset.
 # The training data block: -
 # The read_train_data function takes the features dataset read above, and reads these features from the 
 # training data file, train/X_train.txt.
-train_data <- read_dataset(features = features)
+train_data <- read.dataset(features = features)
 
 # The read_train_labels function reads the training labels file, train/y_train.txt.
-train_labels <- read_labels()
+train_labels <- read.labels()
 
 # The read_train_subjects function reads the training subjects file, train/subject_train.txt.
-train_subjects <- read_subjects()
+train_subjects <- read.subjects()
 
 # The three datasets are then joined using the id column, that is assigned to the datasets
 # by the functions that read these files in. The id column is just the row number of each
@@ -251,13 +252,13 @@ rm(train_data, train_labels, train_subjects)
 # The test data block: -
 # The read_test_data function takes the features dataset read above, and reads these features from the 
 # test data file, test/X_test.txt.
-test_data <- read_dataset(features = features, dataset = "test")
+test_data <- read.dataset(features = features, dataset = "test")
 
 # The read_test_labels function reads the test labels file, test/y_test.txt.
-test_labels <- read_labels(dataset = "test")
+test_labels <- read.labels(dataset = "test")
 
 # The read_test_subjects function reads the test subjects file, test/subject_test.txt.
-test_subjects <- read_subjects(dataset = "test")
+test_subjects <- read.subjects(dataset = "test")
 
 # The three datasets are then joined using the id column, that is assigned to the datasets
 # by the functions that read these files in. The id column is just the row number of each
@@ -278,7 +279,7 @@ rm(test_data, test_labels, test_subjects)
 # - Summarises the groups by mean of the variables, as instructed in the project specification
 # - Writes the summarised dataset out to a file, which needs to be uploaded to the project site.
 rbind(train, test) %>%
-    rename_columns_of_dataset(col_names) %>%
+    rename.columns(col_names) %>%
     inner_join(activities, by = "label") %>%
     select(-c(id, label)) %>%
     group_by(activity, subject) %>%
@@ -350,3 +351,6 @@ rbind(train, test) %>%
               "Avg. Std. Dev. of Magnitude of Jerk Angular Velocity - Frequency" = mean(`Std. Dev. of Magnitude of Jerk Angular Velocity - Frequency`)
     ) %>%
     write.table(file = "tidy_dataset.txt", row.names = F)
+
+# Remove all unnecessary datasets from memory
+rm(activities, col_names, features, test, train)
